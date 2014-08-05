@@ -16,10 +16,10 @@ MiningRigRentals.com API integration. Python sources.
 
 ###3. Create class 
 ```python
-  api = mrrapi.api(api_key,api_secret)
+  mapi = mrrapi.api(mkey,msecret)
 ```
-api_key - your API key
-api_secret - your API secret code
+mkey - your API key
+msecret - your API secret code
 
 ###4. Methods and parameters:
 

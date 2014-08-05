@@ -9,8 +9,10 @@ import time
 import urllib
 import urllib2
 import json
-import os,sys
+import sys
+
 debug = False
+
 
 class api:
     __api_key = ''
@@ -28,7 +30,7 @@ class api:
 
     ##generate signature
     def __signature(self, post_data):
-        string = urllib.urlencode(post_data)  ##create string
+        string = urllib.urlencode(post_data)  ##url encode post data
         signature = hmac.new(self.__api_secret, string, digestmod=hashlib.sha1).hexdigest().upper()  ##create signature
         if debug:
             print "\n __signature"
@@ -40,8 +42,10 @@ class api:
     def __post(self, url, param):  ##Post Request (Low Level API call)
         params = urllib.urlencode(param)
         sign = self.__signature(param)
-        req = urllib2.Request(url, params, {'User-agent': 'Mozilla/4.0 (compatible; MRR API Python client; ' + str(sys.platform) + '; ' + str(sys.version) + ')',
-                                            'x-api-key': self.__api_key, 'x-api-sign': sign})
+        req = urllib2.Request(url, params, {
+        'User-agent': 'Mozilla/4.0 (compatible; MRR API Python client; ' + str(sys.platform) + '; ' + str(
+            sys.version) + ')',
+        'x-api-key': self.__api_key, 'x-api-sign': sign})
         page = urllib2.urlopen(req).read()
         return page
 
@@ -53,8 +57,10 @@ class api:
         return json.loads(answer)  ## generate dict and return
 
     def rig_detail(self, rigID=6900):
+
         return self.api_call('rigs', {'method': 'detail', 'id': str(rigID)})
-    def rig_list(self, minhash, maxhash, mincost, maxcost, rigtype='scrypt', showoff='no',):
+
+    def rig_list(self, minhash, maxhash, mincost, maxcost, rigtype='scrypt', showoff='no', ):
         params = {'method': 'list', 'type': str(rigtype), 'showoff': str(showoff)}
         if (float(minhash) > 0):
             params.update({'min_hash': str(minhash)})
