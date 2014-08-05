@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Based off of https://github.com/matveyco/cex.io-api-python
 # Modified for MiningRigRentals.com purposes
+# Get a key from https://www.miningrigrentals.com/account/apikey
 # Licensed The MIT License
 
 import hmac
@@ -56,11 +57,10 @@ class api:
         answer = self.__post(url, param);  ##Post Request
         return json.loads(answer)  ## generate dict and return
 
-    def rig_detail(self, rigID=6900):
-
+    def rig_detail(self, rigID):
         return self.api_call('rigs', {'method': 'detail', 'id': str(rigID)})
 
-    def rig_list(self, minhash=0, maxhash=0, mincost=0, maxcost=0, rigtype='scrypt', showoff='no', ):
+    def rig_list(self, minhash=0, maxhash=0, mincost=0, maxcost=0, rigtype='scrypt', showoff='no'):
         params = {'method': 'list', 'type': str(rigtype), 'showoff': str(showoff)}
         if (float(minhash) > 0):
             params.update({'min_hash': str(minhash)})
@@ -72,7 +72,7 @@ class api:
             params.update({'max_cost': str(maxcost)})
         return self.api_call('rigs', params)
 
-    def rig_update(self, rigID, rigName=None, rigStatus=None, hashrate=None, hash_type=None, price=None, min_hours=None,
+    def rig_update(self, rigID=None, rigName=None, rigStatus=None, hashrate=None, hash_type=None, price=None, min_hours=None,
                    max_hours=None):
         if rigID is not None:
             params = {'method': 'update', 'id': str(rigID)}
