@@ -11,7 +11,7 @@ requires = [
 
 setup(
     name='mrrapi',
-    version='0.1',
+    version='0.2',
     description='MinigRigRentals.com python API integration',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
