@@ -63,7 +63,7 @@ def getPoolPickerAlgo(algo='ScryptN'):
                     pass
     if len(algobtc) > 0:
         algobtc.sort()
-        if debug or verbose:
+        if debug:
             print algobtc
         return max(algobtc)
     else:
@@ -83,20 +83,20 @@ def getmrrlow(ignoreFirstrigs=0,min_price=0):
                     if float(x['rating']) > 4.0:                                #only compare highly rated rigs
                         mrrrigs.update({int(x['id']): {'hashrate': float(x['hashrate']), 'price': float(x['price_mhash'])}})
                         mrrpp.append(float(x['price_mhash']))
-                    elif debug or verbose:
+                    elif verbose:
                         print "Ignoring rig: " + str(x['id']) + " With a rating of " + str(x['rating']) + " for " + str(x['name'])
         for e in mrrpp:
             if e not in mrrprices:
                mrrprices.append(e)
         mrrprices.sort()
         if len(mrrprices) > ignoreFirstrigs:
-            if debug or verbose:
-                print mrrprices[ignoreFirstrigs]
-            return mrrprices[ignoreFirstrigs]
+            if debug:
+                print mrrprices[ignoreFirstrigs - 1]
+            return mrrprices[ignoreFirstrigs - 1]
         elif len(mrrprices) > 0:
             print "WARNING: " + str(len(mrrprices)) + " prices instead of " + str(ignoreFirstrigs) + " asked for. "
             ignoreFirstrigs = len(mrrprices) - 1
-            if debug or verbose:
+            if debug:
                 print mrrprices[ignoreFirstrigs]
             return mrrprices[ignoreFirstrigs]
         else:
@@ -112,7 +112,7 @@ def setRigPrice(rigId,setPrice,rigDetail=None):
             print "Changing rig price from: " + str(float(rigDetail['data']['price'])) + " to " + str(setPrice)
             mapi.rig_update(str(rigDetail['data']['id']),price=str(setPrice))
         else:
-            if debug or verbose:
+            if verbose:
                 print "Rig " + str(rigDetail['data']['id']) + " already at " + str(setPrice)
     else:
         print "Setting Rig " + str(rigDetail['data']['id']) + " price: " + str(setPrice)
@@ -127,7 +127,7 @@ def updatemyRigsPrices(percenta,percentr,setPrice,ppPrice):
     """
     for x in mrrdevices:
         t = mapi.rig_detail(x)
-        if debug or verbose:
+        if debug:
             print t
         if str(t['data']['status']) == 'available':
             if setPrice > (ppPrice * percenta):
