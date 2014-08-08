@@ -184,8 +184,12 @@ def calculateMaxIncomeA():
                 if 0.1 < aih < 10.0:
                     rigstat += " "
                 rigstat += str(aih) + " hrs"
+            elif (str(t['data']['status']) == 'unavailable'):
+                rigstat = "disabled"
             print(layout.format(str(t['data']['name']),str(mhashrate) + " MH",str(round(float(t['data']['price']),6)) ,str(round(dailyprice,8)), rigstat))
             outcome += dailyprice
+        if debug:
+            print t
 
 def printCalcs():
     btc_usd = getBTCValue()
