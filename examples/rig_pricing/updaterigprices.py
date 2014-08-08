@@ -115,7 +115,7 @@ def setRigPrice(rigId,setPrice,rigDetail=None):
             if verbose:
                 print "Rig " + str(rigDetail['data']['id']) + " already at " + str(setPrice)
     else:
-        print "Setting Rig " + str(rigDetail['data']['id']) + " price: " + str(setPrice)
+        print "Setting Rig " + str(rigId) + " price: " + str(setPrice)
         mapi.rig_update(str(rigId),price=str(setPrice))
 
 def updatemyRigsPrices(percenta,percentr,setPrice,ppPrice):
@@ -165,19 +165,23 @@ def calculateMaxIncomeA():
 def printCalcs():
     btc_usd = getBTCValue()
 
-    #print mrrrigs
+    #get the max payout from poolpicker
     ppmax = getPoolPickerAlgo(ppalgo)
 
+    # the getmrrlow takes 2 arguments
+    #  number of lowest prices to ignore
+    #  poolpicker max payout
+    mrrlow = getmrrlow(3,ppmax)
+
+    print "PoolPicker Max: " + str(ppmax)
+    print "MRR Lowest    : " + str(mrrlow)
     #The following command triggers all of the work.
     # There are four main argument to updateMyRigsPrices
     #  We want to rent our rig by at least 25% above the highest paying pool on poolpicker
     #  We will raise our price to 40% over poolpicker while our rig is rented
     #  Lowest price we will set
     #  Highest payout on poolpicker
-    updatemyRigsPrices(1.25,1.4,getmrrlow(3,ppmax),ppmax)
-    # the getmrrlow takes 2 arguments
-    #  number of lowest prices to ignore
-    #  poolpicker max payout
+    updatemyRigsPrices(1.25,1.4,mrrlow,ppmax)
 
     calculateMaxIncomeA()
     mrrdaily = outcome - 0.0002
