@@ -12,18 +12,22 @@ import mrrapi
 ##############################################################################
 ##############################################################################
 # Change settings here
-debug = False
 # Verbose displays useful info. Turn off if you do not want it displayed
 verbose = True
+# Turn debug on to see all info
+debug = False
 
 # your key and secret
 mkey = 'YourKey'
 msecret = 'YourSecret'
 
 # you device id or list of devices, comma separated
-mrrdevices = [6830, 6899]
-ppalgo = 'Scrypt'      # PoolPicker algo: Scrypt, ScryptN, X11, X13, X15
-mrralgo = 'scrypt'     # MRR Algo Name  : scyrpt, scryptn, x11, x13, x15
+mrrdevices = [7280]
+ppalgo = 'SHA256'      # PoolPicker algo: Scrypt, ScryptN, X11, X13, X15, SHA256
+mrralgo = 'sha256'     # MRR Algo Name  : scyrpt, scryptn, x11, x13, x15, sha256
+# Multipliers to set you rig price by
+ppa = 1.25  # When rig is available, add 25% above max poolpicker payout
+ppr = 1.35  #    When rig is rented, add 35% above max poolpicker payout
 # Pools to ignore from poolpicker
 PoolPickerIgnore = ['AltMining.Farm','bobpool']
 ##############################################################################
@@ -46,7 +50,7 @@ def getBTCValue():
 
 def getPoolPickerAlgo(algo='ScryptN'):
     algobtc =[]
-    layout = "{0:>45}{1:>15}"
+    layout = "{0:>45}{1:>20}"
     url = "http://poolpicker.eu/api"
     res = requests.get(url, verify=False)
     if (requests.__version__.split('.')[0] > 0):    #Detect old version of requests used by distros
@@ -59,9 +63,14 @@ def getPoolPickerAlgo(algo='ScryptN'):
         if x['profitability'].has_key(algo):
             if x['profitability'][algo][0]['btc']:
                 if str(x['name']) not in PoolPickerIgnore:
-                    algobtc.append(float(x['profitability'][algo][0]['btc']))
-                    if verbose:
-                        print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc']),8))))
+                    if str(algo) == 'SHA256':
+                        algobtc.append(float(x['profitability'][algo][0]['btc'])/10**6) #bring TH down to MH
+                        if verbose:
+                            print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc'])/10**6,12))))
+                    else:
+                        algobtc.append(float(x['profitability'][algo][0]['btc']))
+                        if verbose:
+                            print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc']),8))))
     if verbose:
         print(layout.format(" ---------------", "  ----------"))
     if len(algobtc) > 0:
@@ -116,7 +125,7 @@ def setRigPrice(rigId,setPrice,rigDetail=None):
     if rigDetail is not None:
         if float(rigDetail['data']['price']) != float(setPrice):
             if verbose:
-                print "Changing rig price from: " + str(float(rigDetail['data']['price'])) + " to " + str(setPrice)
+                print "Changing rig " + str(rigDetail['data']['id']) + " price from: " + str(float(rigDetail['data']['price'])) + " to " + str(setPrice)
             mapi.rig_update(str(rigDetail['data']['id']),price=str(setPrice))
         else:
             if verbose:
@@ -194,11 +203,11 @@ def printCalcs():
     print "MRR Lowest    : " + str(mrrlow)
     #The following command triggers all of the work.
     # There are four main argument to updateMyRigsPrices
-    #  We want to rent our rig by at least 25% above the highest paying pool on poolpicker
-    #  We will raise our price to 40% over poolpicker while our rig is rented
+    #  ppa is set at top of file
+    #  ppr is set at top of file
     #  Lowest price we will set
     #  Highest payout on poolpicker
-    updatemyRigsPrices(1.25,1.4,mrrlow,ppmax)
+    updatemyRigsPrices(ppa,ppr,mrrlow,ppmax)
 
     calculateMaxIncomeA()
     mrrdaily = outcome - 0.0002
