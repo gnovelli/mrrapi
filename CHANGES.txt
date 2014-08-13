@@ -1,0 +1,4 @@
+ v0.3
+======
+Add myrigs to api calls
+Add list my rigs example
