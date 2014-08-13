@@ -1,6 +1,9 @@
 import os
 
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.md')).read()
@@ -11,7 +14,8 @@ requires = [
 
 setup(
     name='mrrapi',
-    version='0.2',
+    version='0.3',
+    url='https://github.com/jcwoltz/mrrapi',
     description='MinigRigRentals.com python API integration',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
@@ -20,9 +24,9 @@ setup(
     ],
     author='jcwoltz',
     author_email='jwoltz@gmail.com',
-    url='',
     keywords='mrr miningrigrentals api bitcoin',
-    packages=find_packages(),
+    packages=['mrrapi'],
+    install_requires=['requests'],
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,
