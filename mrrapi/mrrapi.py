@@ -56,6 +56,12 @@ class api:
         answer = self.__post(url, param)            #Post Request
         return json.loads(answer)                   # generate dict and return
 
+    def myrigs(self):
+        """
+        :return: return list of rigs you own with detail
+        """
+        return self.api_call('account', {'method': 'myrigs'})
+
     def rig_detail(self, rig_id):
         """
         :param rig_id: id
