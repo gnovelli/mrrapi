@@ -1,4 +1,9 @@
+ v0.3.2
+==================
+no code changes to mrrapi.py
+formatting and pypi fixes
+
  v0.3
-======
+==================
 Add myrigs to api calls
 Add list my rigs example
