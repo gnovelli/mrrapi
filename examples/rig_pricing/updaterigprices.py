@@ -96,8 +96,8 @@ def getmrrlow(ignoreFirstrigs=0,min_price=0):
                     print x
                 if str(x['status']).lower() == 'available':                     #only compare available rigs
                     if float(x['rating']) > 4.0:                                #only compare highly rated rigs
-                        mrrrigs.update({int(x['id']): {'hashrate': float(x['hashrate']), 'price': float(x['price_mhash'])}})
-                        mrrpp.append(float(x['price_mhash']))
+                        mrrrigs.update({int(x['id']): {'hashrate': float(x['hashrate']), 'price': float(x['price'])}})
+                        mrrpp.append(float(x['price']))
                     elif debug:
                         print "Ignoring rig: " + str(x['id']) + " With a rating of " + str(x['rating']) + " for " + str(x['name'])
         for e in mrrpp:
