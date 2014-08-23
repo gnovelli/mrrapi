@@ -5,7 +5,7 @@ import requests
 import codecs,sys
 import json
 import urllib2
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import os
 import mrrapi
@@ -49,7 +49,14 @@ def getBTCValue():
     return btc_usd
 
 def getPoolPickerAlgo(algo='ScryptN'):
+    global algobtc, poolbtc
     algobtc =[]
+    poolbtc = {}
+    dfmt = '%Y-%m-%d'
+    nowTime = datetime.now(timezone('EST5EDT')).strftime(dfmt)
+    yDate = (datetime.now() - timedelta(days=1)).strftime(dfmt)
+    if debug:
+        print " Looking for Date: " + nowTime
     layout = "{0:>45}{1:>20}"
     url = "http://poolpicker.eu/api"
     res = requests.get(url, verify=False)
@@ -60,17 +67,27 @@ def getPoolPickerAlgo(algo='ScryptN'):
     if verbose:
         print(layout.format(" Pool Name ", "Payout "))
     for x in tr['pools']:
-        if x['profitability'].has_key(algo):
-            if x['profitability'][algo][0]['btc']:
-                if str(x['name']) not in PoolPickerIgnore:
-                    if str(algo) == 'SHA256':
+        if x['profitability'].has_key(algo):                    # Make sure this pool has selected algo
+            if x['profitability'][algo][0]['date'] == nowTime or x['profitability'][algo][0]['date'] == yDate:  # Look at today only
+                if str(x['name']) not in PoolPickerIgnore:      # pools to ignore
+                    if str(algo) == 'SHA256':                   # PP reports sha256 in THs
                         algobtc.append(float(x['profitability'][algo][0]['btc'])/10**6) #bring TH down to MH
+                        poolbtc[str(x['name'])] = float(x['profitability'][algo][0]['btc'])/10**6
                         if verbose:
                             print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc'])/10**6,12))))
+                    elif str(algo) == 'Keccak':
+                        algobtc.append(float(x['profitability'][algo][0]['btc'])/10**3) #bring GH down to MH
+                        poolbtc[str(x['name'])] = float(x['profitability'][algo][0]['btc'])/10**3
+                        if verbose:
+                            print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc'])/10**3,12))))
                     else:
                         algobtc.append(float(x['profitability'][algo][0]['btc']))
+                        poolbtc[str(x['name'])] = float(x['profitability'][algo][0]['btc'])
                         if verbose:
-                            print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc']),8))))
+                            print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc']),10))))
+            else:
+                if debug:
+                    print "Ignoring pool " + str(x['name']) + " due to a past date of " + str(x['profitability'][algo][0]['date'])
     if verbose:
         print(layout.format(" ---------------", "  ----------"))
     if len(algobtc) > 0:
@@ -79,6 +96,7 @@ def getPoolPickerAlgo(algo='ScryptN'):
             print(layout.format(" Max Payout",round(max(algobtc),8) ))
         if debug:
             print algobtc
+            print poolbtc
         return max(algobtc)
     else:
         print "No Pricing available"
