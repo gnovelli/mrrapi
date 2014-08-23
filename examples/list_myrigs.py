@@ -6,9 +6,10 @@ msecret = 'YourSecret'
 mapi = mrrapi.api(mkey,msecret)
 debug = False
 
-def parsemyrigs(rigs):
+def parsemyrigs(rigs,list_disabled=False):
     """
     :param rigs: pass the raw api return from mrrapi.myrigs()
+    :param list_disabled: Boolean to list the disabled rigs
     :return: returns dict by algorithm
     """
     global mrrrigs
@@ -19,7 +20,9 @@ def parsemyrigs(rigs):
     for x in myrigs['data']['records']:
         mrrrigs.update({str(x['type']): {}})
     for x in myrigs['data']['records']:
-        mrrrigs[str(x['type'])][int(x['id'])] = str(x['name'])
+        #print x
+        if list_disabled or  str(x['status']) != 'disabled':
+            mrrrigs[str(x['type'])][int(x['id'])] = str(x['name'])
     return mrrrigs
 
 def calculateMaxIncomeAlgo(parsedrigs):
@@ -38,8 +41,8 @@ def calculateMaxIncomeAlgo(parsedrigs):
             if nametmp > namelen:
                 namelen = nametmp
             #print x, algo, namelen
-    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>12}{4:>15}{5:>14}"
-    print(layout.format("  Device Name  ", " Type ", " Speed ","Price  ", "Daily income", "Rented? "))
+    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>14}{4:>12}{5:>15}{6:>14}"
+    print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? "))
 
     for algo in parsedrigs:
         algorigs = parsedrigs[algo]
@@ -49,6 +52,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
             if debug:
                 print t
             rigstat = "available"
+            curhash = float(0.0)
             mhashrate = float(float(t['hashrate']['advertised'])/(1000000.0))
             mhash += mhashrate
             dailyprice = mhashrate * float(t['price']) * (1.0 - rentalfee)
@@ -58,9 +62,10 @@ def calculateMaxIncomeAlgo(parsedrigs):
                 if 0.1 < aih < 10.0:
                     rigstat += " "
                 rigstat += str(aih) + " hrs"
+                curhash = round(float(t['hashrate']['30min'])/10**6,3)
             elif (str(t['status']) == 'unavailable'):
                 rigstat = "disabled"
-            print(layout.format(str(t['name']),str(t['type']),str(mhashrate) + " MH",str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat))
+            print(layout.format(str(t['name']),str(t['type']),str(mhashrate) + " MH",str(curhash) + " M",str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat))
             outcome += dailyprice
 
     return outcome
@@ -69,7 +74,8 @@ if __name__ == '__main__':
     myrigs = mapi.myrigs()
     if myrigs['success'] is not True:
         print "Error getting my rig listings"
-        print "Make sure you fill in key and secret"
+        if str(myrigs['message']) == 'not authenticated':
+            print "Make sure you fill in key and secret"
     else:
         prigs = parsemyrigs(myrigs)
         #print prigs
