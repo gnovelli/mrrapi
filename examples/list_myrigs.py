@@ -56,16 +56,23 @@ def calculateMaxIncomeAlgo(parsedrigs):
             mhashrate = float(float(t['hashrate']['advertised'])/(1000000.0))
             mhash += mhashrate
             dailyprice = mhashrate * float(t['price']) * (1.0 - rentalfee)
+            mhunit = "MH"
+            if 1000 <= mhashrate < 1000000:
+                mhunit = "GH"
+                mhashrate = float(mhashrate/1000)
+            elif mhashrate >= 1000000:
+                mhunit = "TH"
+                mhashrate = float(mhashrate/1000000)
             if (str(t['status']) == 'rented'):
                 aih = float(t['available_in_hours'])
                 rigstat = "R "
                 if 0.1 < aih < 10.0:
                     rigstat += " "
                 rigstat += str(aih) + " hrs"
-                curhash = round(float(t['hashrate']['30min'])/10**6,3)
             elif (str(t['status']) == 'unavailable'):
                 rigstat = "disabled"
-            print(layout.format(str(t['name']),str(t['type']),str(mhashrate) + " MH",str(curhash) + " M",str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat))
+            curhash = round(float(t['hashrate']['30min'])/10**6,3)
+            print(layout.format(str(t['name']),str(t['type']),str(mhashrate) + " " + mhunit,str(curhash) + " M",str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat))
             outcome += dailyprice
 
     return outcome
