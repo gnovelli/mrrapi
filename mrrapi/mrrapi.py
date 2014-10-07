@@ -49,12 +49,18 @@ class api:
         page = urllib2.urlopen(req).read()
         return page
 
-    def api_call(self, method, param={}):           # api call (Middle level)
-        url = 'https://www.miningrigrentals.com/api/v1/' + method  #generate url
+    def api_call(self, target, param={}):           # api call (Middle level)
+        url = 'https://www.miningrigrentals.com/api/v1/' + target  #generate url
         self.__nonce()
         param.update({'nonce': self.__nonce_v})
         answer = self.__post(url, param)            #Post Request
         return json.loads(answer)                   # generate dict and return
+
+    def getbalance(self):
+        """
+        :return: return confirmed and unconfirmed balances
+        """
+        return self.api_call('account', {'method': 'balance'})
 
     def myrigs(self):
         """
