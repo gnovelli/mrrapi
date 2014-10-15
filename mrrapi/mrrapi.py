@@ -20,7 +20,7 @@ class api:
     __api_secret = ''
     __nonce_v = ''
 
-    #Init class
+    # Init class
     def __init__(self, api_key, api_secret):
         self.__api_key = api_key
         self.__api_secret = api_secret
@@ -31,7 +31,7 @@ class api:
 
     #generate signature
     def __signature(self, post_data):
-        string = urllib.urlencode(post_data)                                            #url encode post data
+        string = urllib.urlencode(post_data)  #url encode post data
         signature = hmac.new(self.__api_secret, string, digestmod=hashlib.sha1).hexdigest()  #create signature
         if debug:
             print "\n __signature"
@@ -49,12 +49,12 @@ class api:
         page = urllib2.urlopen(req).read()
         return page
 
-    def api_call(self, target, param={}):           # api call (Middle level)
+    def api_call(self, target, param={}):  # api call (Middle level)
         url = 'https://www.miningrigrentals.com/api/v1/' + target  #generate url
         self.__nonce()
         param.update({'nonce': self.__nonce_v})
-        answer = self.__post(url, param)            #Post Request
-        return json.loads(answer)                   # generate dict and return
+        answer = self.__post(url, param)  #Post Request
+        return json.loads(answer)  # generate dict and return
 
     def getbalance(self):
         """
@@ -67,6 +67,13 @@ class api:
         :return: return list of rigs you own with detail
         """
         return self.api_call('account', {'method': 'myrigs'})
+
+    def rental_detail(self, rental_id):
+        """
+        :param rental_id:
+        :return:
+        """
+        return self.api_call('rental', {'method': 'detail', 'id': str(rental_id)})
 
     def rig_detail(self, rig_id):
         """
