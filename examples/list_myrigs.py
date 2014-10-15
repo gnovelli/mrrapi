@@ -1,10 +1,26 @@
-import mrrapi
+import mrrapi, json, urllib2
 
 mkey = 'YourKey'
 msecret = 'YourSecret'
+try:
+    from rig_pricing.jckey import mkey,msecret
+except:
+    pass
 
 mapi = mrrapi.api(mkey,msecret)
 debug = False
+
+def getBTCValue():
+    # https://www.bitstamp.net/api/  BTC -> USD
+    bitstampurl = "https://www.bitstamp.net/api/ticker/"
+    try:
+        bsjson = urllib2.urlopen(bitstampurl).read()
+        dbstamp_params = json.loads(bsjson)
+        btc_usd = float(dbstamp_params['last'])
+    except:
+        print "Unable to retrieve BTC Value"
+        btc_usd = float(1.1)
+    return btc_usd
 
 def parsemyrigs(rigs,list_disabled=False):
     """
@@ -20,9 +36,12 @@ def parsemyrigs(rigs,list_disabled=False):
     for x in myrigs['data']['records']:
         mrrrigs.update({str(x['type']): {}})
     for x in myrigs['data']['records']:
-        #print x
-        if list_disabled or  str(x['status']) != 'disabled':
+        if debug:
+            print x
+        if list_disabled or str(x['status']) != 'disabled':
             mrrrigs[str(x['type'])][int(x['id'])] = str(x['name'])
+    if debug:
+        print mrrrigs
     return mrrrigs
 
 def calculateMaxIncomeAlgo(parsedrigs):
@@ -33,7 +52,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
 
     namelen = 0
 
-    # Pre-process loop
+    # Pre-process loop to find longest name
     for algo in parsedrigs:
         algorigs = parsedrigs[algo]
         for x in algorigs:
@@ -82,11 +101,11 @@ if __name__ == '__main__':
     if myrigs['success'] is not True:
         print "Error getting my rig listings"
         if str(myrigs['message']) == 'not authenticated':
-            print "Make sure you fill in key and secret"
+            print 'Make sure you fill in your key and secret that you get from https://www.miningrigrentals.com/account/apikey'
     else:
         prigs = parsemyrigs(myrigs)
         #print prigs
         maxi = calculateMaxIncomeAlgo(prigs)
         print
-        print "Max available daily income: " + str(round(maxi,8) - 0.002)
+        print "Max available daily income: " + str(round(maxi,8) - 0.002) + "BTC. USD: " + str(round(getBTCValue()*(maxi -0.002),2))
 
