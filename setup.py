@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name='mrrapi',
-    version='0.3.2',
+    version='0.3.3',
     url='https://github.com/jcwoltz/mrrapi',
     description='MinigRigRentals.com python API integration',
     long_description=read('README.rst') + '\n\n' + read('CHANGES.txt'),

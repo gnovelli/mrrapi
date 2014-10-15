@@ -1,3 +1,8 @@
+ v0.3.3
+==================
+add getbalance call
+add rental_detail call
+
  v0.3.2
 ==================
 no code changes to mrrapi.py
