@@ -38,7 +38,7 @@ def parsemyrigs(rigs,list_disabled=False):
     for x in myrigs['data']['records']:
         if debug:
             print x
-        if list_disabled or str(x['status']) != 'disabled':
+        if (list_disabled or str(x['status']) != 'disabled') and not (str(x['name']).__contains__('retired') or str(x['name']).__contains__('test')):
             mrrrigs[str(x['type'])][int(x['id'])] = str(x['name'])
     if debug:
         print mrrrigs
@@ -60,8 +60,8 @@ def calculateMaxIncomeAlgo(parsedrigs):
             if nametmp > namelen:
                 namelen = nametmp
             #print x, algo, namelen
-    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>14}{4:>12}{5:>15}{6:>14}"
-    print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? "))
+    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>14}{4:>12}{5:>15}{6:>14}{7:>14}"
+    print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? ","RentID"))
 
     for algo in parsedrigs:
         algorigs = parsedrigs[algo]
@@ -72,29 +72,37 @@ def calculateMaxIncomeAlgo(parsedrigs):
                 print t
             rigstat = "available"
             curhash = float(0.0)
-            mhashrate = float(float(t['hashrate']['advertised'])/(1000000.0))
+            rentid = ''
+            mhashrate = float(t['hashrate']['advertised'])/(1000000.0)
             mhash += mhashrate
+            admhashrate = nicehash(float(t['hashrate']['advertised'])/(1000000.0))
             dailyprice = mhashrate * float(t['price']) * (1.0 - rentalfee)
-            mhunit = "MH"
-            if 1000 <= mhashrate < 1000000:
-                mhunit = "GH"
-                mhashrate = float(mhashrate/1000)
-            elif mhashrate >= 1000000:
-                mhunit = "TH"
-                mhashrate = float(mhashrate/1000000)
+            curhash = nicehash(round(float(t['hashrate']['30min'])/10**6,3))
             if (str(t['status']) == 'rented'):
                 aih = float(t['available_in_hours'])
                 rigstat = "R "
                 if 0.1 < aih < 10.0:
                     rigstat += " "
                 rigstat += str(aih) + " hrs"
+                rentid = str(t['rentalid'])
             elif (str(t['status']) == 'unavailable'):
                 rigstat = "disabled"
-            curhash = round(float(t['hashrate']['30min'])/10**6,3)
-            print(layout.format(str(t['name']),str(t['type']),str(mhashrate) + " " + mhunit,str(curhash) + " M",str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat))
+                outcome -= dailyprice
+
+            print(layout.format(str(t['name']),str(t['type']),str(admhashrate),str(curhash),str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat,rentid))
             outcome += dailyprice
 
     return outcome
+
+def nicehash(mhashrate):
+    mhunit = "MH"
+    if 1000 <= mhashrate < 1000000:
+        mhunit = "GH"
+        mhashrate = round(float(mhashrate/1000),3)
+    elif mhashrate >= 1000000:
+        mhunit = "TH"
+        mhashrate = round(float(mhashrate/1000000),3)
+    return (str(mhashrate) + " " + mhunit)
 
 if __name__ == '__main__':
     myrigs = mapi.myrigs()
@@ -103,9 +111,14 @@ if __name__ == '__main__':
         if str(myrigs['message']) == 'not authenticated':
             print 'Make sure you fill in your key and secret that you get from https://www.miningrigrentals.com/account/apikey'
     else:
-        prigs = parsemyrigs(myrigs)
+        prigs = parsemyrigs(myrigs,True)
         #print prigs
         maxi = calculateMaxIncomeAlgo(prigs)
+        bal = mapi.getbalance()
+        btcv = getBTCValue()
         print
-        print "Max available daily income: " + str(round(maxi,8) - 0.002) + "BTC. USD: " + str(round(getBTCValue()*(maxi -0.002),2))
+        print "Max income/day : %s BTC. USD: %s" % (str(round(maxi,8) - 0.002),str(round(btcv*(maxi -0.002),2)))
+        print "Current Balance: %s BTC. USD: %s" % (str(bal['data']['confirmed']),str(round(btcv*float(bal['data']['confirmed']),2)))
+        print "Pending Balance: %s BTC. USD: %s" % (str(bal['data']['unconfirmed']),str(round(btcv*float(bal['data']['unconfirmed']),2)))
+
 
