@@ -68,12 +68,31 @@ class api:
         """
         return self.api_call('account', {'method': 'myrigs'})
 
+    def myrentals(self):
+        """
+        :return: return list of rigs you are actively renting
+        """
+        return self.api_call('account', {'method': 'myrentals'})
+
+    def list_profiles(self):
+        """
+        :return: returns list of pool profiles configured for your account
+        """
+        return self.api_call('account', {'method': 'profiles'})
+
     def rental_detail(self, rental_id):
         """
-        :param rental_id:
+        :param rental_id: id number of rental
         :return:
         """
         return self.api_call('rental', {'method': 'detail', 'id': str(rental_id)})
+
+    def rent_rig(self, rentalprofile, hours, rig_id):
+        """
+        :param rig_id: id
+        :return: Returns the detail of rig_id
+        """
+        return self.api_call('rigs', {'method': 'rent', 'profileid': str(rentalprofile), 'length':str(hours), 'id': str(rig_id)})
 
     def rig_detail(self, rig_id):
         """

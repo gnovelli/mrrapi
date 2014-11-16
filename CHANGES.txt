@@ -1,7 +1,10 @@
  v0.3.3
 ==================
 add getbalance call
+add myrentals call
 add rental_detail call
+add list_profiles call
+add rent_rig call
 
  v0.3.2
 ==================
