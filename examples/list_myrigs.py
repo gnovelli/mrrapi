@@ -9,6 +9,14 @@ except:
 
 mapi = mrrapi.api(mkey,msecret)
 debug = False
+#helper function to format floats
+def ff(f):
+    return format(f, '.8f')
+
+#helper function to format floats
+def ff12(f):
+    return format(f, '.11f')
+
 
 def getBTCValue():
     # https://www.bitstamp.net/api/  BTC -> USD
@@ -60,7 +68,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
             if nametmp > namelen:
                 namelen = nametmp
             #print x, algo, namelen
-    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>14}{4:>12}{5:>15}{6:>14}{7:>14}"
+    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>15}{4:>15}{5:>14}{6:>14}{7:>14}"
     print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? ","RentID"))
 
     for algo in parsedrigs:
@@ -89,7 +97,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
                 rigstat = "disabled"
                 outcome -= dailyprice
 
-            print(layout.format(str(t['name']),str(t['type']),str(admhashrate),str(curhash),str(round(float(t['price']),8)) ,str(round(dailyprice,8)), rigstat,rentid))
+            print(layout.format(str(t['name']),str(t['type']),str(admhashrate),str(curhash),ff12(float(t['price'])) ,ff(dailyprice), rigstat,rentid))
             outcome += dailyprice
 
     return outcome
