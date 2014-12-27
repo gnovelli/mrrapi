@@ -25,23 +25,36 @@ mkey = 'YourKey'
 msecret = 'YourSecret'
 
 # you device id or list of devices, comma separated
-mrrdevices = [7280]
+mrrdevices = [7280,11014,11441,11442,11443]
 ppalgo = 'SHA256'      # PoolPicker algo: Scrypt, ScryptN, X11, X13, X15, SHA256
 mrralgo = 'sha256'     # MRR Algo Name  : scyrpt, scryptn, x11, x13, x15, sha256
 # Multipliers to set you rig price by
-ppa = 1.25  # When rig is available, add 25% above max poolpicker payout
-ppr = 1.35  #    When rig is rented, add 35% above max poolpicker payout
+ppa = 1.1  # When rig is available, add 25% above max poolpicker payout
+ppr = 1.1  #    When rig is rented, add 35% above max poolpicker payout
 # Pools to ignore from poolpicker
-PoolPickerIgnore = ['AltMining.Farm','bobpool']
+PoolPickerIgnore = []
 ##############################################################################
 ##############################################################################
 ##############################################################################
+try:
+    from jckey import mkey,msecret
+except:
+    pass
+
 mapi = mrrapi.api(mkey,msecret)
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 mrrrigs = {}
 mrrprices = []
+
+#helper function to format floats
+def ff(f):
+    return format(f, '.8f')
+
+#helper function to format floats
+def ff12(f):
+    return format(f, '.12f')
 
 def getBTCValue():
     # https://www.bitstamp.net/api/  BTC -> USD
@@ -77,7 +90,7 @@ def getPoolPickerAlgo(algo='ScryptN'):
                         algobtc.append(float(x['profitability'][algo][0]['btc'])/10**6) #bring TH down to MH
                         poolbtc[str(x['name'])] = float(x['profitability'][algo][0]['btc'])/10**6
                         if verbose:
-                            print(layout.format(str(x['name']),str(round(float(x['profitability'][algo][0]['btc'])/10**6,12))))
+                            print(layout.format(str(x['name']),str(ff12(round(float(x['profitability'][algo][0]['btc'])/10**6,12)))))
                     elif str(algo) == 'Keccak':
                         algobtc.append(float(x['profitability'][algo][0]['btc'])/10**3) #bring GH down to MH
                         poolbtc[str(x['name'])] = float(x['profitability'][algo][0]['btc'])/10**3
@@ -96,7 +109,7 @@ def getPoolPickerAlgo(algo='ScryptN'):
     if len(algobtc) > 0:
         algobtc.sort()
         if verbose:
-            print(layout.format(" Max Payout",round(max(algobtc),8) ))
+            print(layout.format(" Max Payout",ff12(round(max(algobtc),12)) ))
         if debug:
             print algobtc
             print poolbtc
@@ -146,15 +159,15 @@ def setRigPrice(rigId,setPrice,rigDetail=None):
     if rigDetail is not None:
         if float(rigDetail['data']['price']) != float(setPrice):
             if verbose:
-                print "Changing rig " + str(rigDetail['data']['id']) + " price from: " + str(float(rigDetail['data']['price'])) + " to " + str(setPrice)
-            mapi.rig_update(str(rigDetail['data']['id']),price=str(setPrice))
+                print "Changing rig " + str(rigDetail['data']['id']) + " price from: " + str(float(rigDetail['data']['price'])) + " to " + ff12(setPrice)
+            mapi.rig_update(str(rigDetail['data']['id']),price=ff12(setPrice))
         else:
             if verbose:
-                print "Rig " + str(rigDetail['data']['id']) + " already at " + str(setPrice)
+                print "Rig " + str(rigDetail['data']['id']) + " already at " + ff12(setPrice)
     else:
         if verbose:
-            print "Setting Rig " + str(rigId) + " price: " + str(setPrice)
-        mapi.rig_update(str(rigId),price=str(setPrice))
+            print "Setting Rig " + str(rigId) + " price: " + ff12(setPrice)
+        mapi.rig_update(str(rigId),price=ff12(setPrice))
 
 def updatemyRigsPrices(percenta,percentr,setPrice,ppPrice):
     """
@@ -190,7 +203,7 @@ def calculateMaxIncomeA():
     rentalfee = float(0.035)
     outcome = float(0)
     mhash = float(0)
-    layout = "{0:>65}{1:>10}{2:>10}{3:>15}{4:>14}"
+    layout = "{0:>65}{1:>16}{2:>16}{3:>16}{4:>14}"
     print(layout.format("  Device Name  ", " Speed ","Price  ", "Daily income", "Rented? "))
     for x in mrrdevices:
         t = mapi.rig_detail(x)
@@ -207,7 +220,7 @@ def calculateMaxIncomeA():
                 rigstat += str(aih) + " hrs"
             elif (str(t['data']['status']) == 'unavailable'):
                 rigstat = "disabled"
-            print(layout.format(str(t['data']['name']),str(mhashrate) + " MH",str(round(float(t['data']['price']),6)) ,str(round(dailyprice,8)), rigstat))
+            print(layout.format(str(t['data']['name']),str(mhashrate) + " MH",ff12(float(t['data']['price'])) ,ff(dailyprice), rigstat))
             outcome += dailyprice
         if debug:
             print t
@@ -225,7 +238,7 @@ def printCalcs():
     mrrlow = getmrrlow(3,ppmax)
 
     #print "PoolPicker Max: " + str(ppmax)
-    print "MRR Lowest    : " + str(mrrlow)
+    print "MRR Lowest    : " + ff12(mrrlow)
     #The following command triggers all of the work.
     # There are four main argument to updateMyRigsPrices
     #  ppa is set at top of file
