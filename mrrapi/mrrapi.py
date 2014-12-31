@@ -14,7 +14,6 @@ import sys
 
 debug = False
 
-
 class api:
     __api_key = ''
     __api_secret = ''

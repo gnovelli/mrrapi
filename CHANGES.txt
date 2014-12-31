@@ -1,3 +1,8 @@
+ v0.3.4
+==================
+add console script list_myrigs
+
+
  v0.3.3
 ==================
 add getbalance call
