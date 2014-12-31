@@ -27,4 +27,9 @@ setup(
     packages=find_packages(exclude=['contrib', 'example*', 'docs', 'tests*']),
     install_requires=['requests'],
     test_suite="mrrapi",
+    entry_points={
+        'console_scripts': [
+            'listmyrigs = scripts.list_myrigs:main'
+        ]
+    }
 )

@@ -1,13 +1,31 @@
 import json
 import urllib2
 import mrrapi
+import ConfigParser
+import os
+import sys
+from optparse import OptionParser
+from inspect import currentframe
 
-mkey = 'YourKey'
-msecret = 'YourSecret'
-try:
-    from rig_pricing.jckey import mkey,msecret
-except:
-    pass
+debug = False
+config = ConfigParser.ConfigParser()
+
+for loc in os.curdir, os.path.expanduser("~"), os.path.expanduser("~/.mrrapi"), os.path.expanduser("~/mrrapi"):
+    try:
+        with open(os.path.join(loc,"mrrapi.cfg")) as source:
+            config.readfp(source)
+            if debug:
+                print "DEBUG: Using %s for config file" % (str(source.name))
+    except IOError:
+        pass
+
+mkey = config.get('MRRAPIKeys','key')
+msecret = config.get('MRRAPIKeys','secret')
+
+def lineno():
+    cf = currentframe()
+    return cf.f_back.f_lineno
+
 
 mapi = mrrapi.api(mkey,msecret)
 debug = False
@@ -43,9 +61,9 @@ def parsemyrigs(rigs,list_disabled=False):
     # I am not a python programmer, do you know a better way to do this?
     # first loop to create algo keys
     # second loop populates rigs in algo
-    for x in myrigs['data']['records']:
+    for x in rigs['data']['records']:
         mrrrigs.update({str(x['type']): {}})
-    for x in myrigs['data']['records']:
+    for x in rigs['data']['records']:
         if debug:
             print x
         if (list_disabled or str(x['status']) != 'disabled') and not (str(x['name']).__contains__('retired') or str(x['name']).__contains__('test')):
@@ -70,7 +88,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
             if nametmp > namelen:
                 namelen = nametmp
             #print x, algo, namelen
-    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>17}{4:>15}{5:>14}{6:>14}{7:>14}"
+    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>13}{4:>17}{5:>14}{6:>14}{7:>10}"
     print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? ","RentID"))
 
     for algo in parsedrigs:
@@ -114,7 +132,16 @@ def nicehash(mhashrate):
         mhashrate = round(float(mhashrate/1000000),3)
     return (str(mhashrate) + " " + mhunit)
 
-if __name__ == '__main__':
+def main():
+    global debug
+    parser = OptionParser()
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False, help="Show debug output")
+    (options, args) = parser.parse_args()
+
+    if options.debug:
+        debug = True
+        print options
+
     myrigs = mapi.myrigs()
     if myrigs['success'] is not True:
         print "Error getting my rig listings"
@@ -132,3 +159,5 @@ if __name__ == '__main__':
         print "Pending Balance: %s BTC. USD: %s" % (str(bal['data']['unconfirmed']),str(round(btcv*float(bal['data']['unconfirmed']),2)))
 
 
+if __name__ == '__main__':
+    main()
