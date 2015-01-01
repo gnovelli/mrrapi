@@ -1,12 +1,11 @@
 import json
 import urllib2
-import mrrapi
 import ConfigParser
 import os
 import sys
 from optparse import OptionParser
 from inspect import currentframe
-#from mrrapi.helpers import getmrrconfig, getTerminalSize
+import mrrapi
 import mrrapi.helpers
 
 debug = False
