@@ -10,6 +10,7 @@ Intro
 1. Download lib or pip install mrrapi
 2. Get API key and API secret on https://www.miningrigrentals.com/account/apikey account
 3. Run an example or create your own code
+4. (Required if you want to run included console scripts) put a file called mrrapi.cfg in you home directory or ~/.mrrapi/
 
 How to use
 ===========

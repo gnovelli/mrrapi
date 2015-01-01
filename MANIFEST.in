@@ -2,3 +2,4 @@ include CHANGES.txt
 include README.rst
 exclude .gitignore
 include RELEASE-VERSION
+exclude mrrapi.cfg
