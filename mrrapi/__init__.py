@@ -16,8 +16,7 @@ import sys
 
 debug = False
 __author__ = 'jcwoltz'
-__version__ = '0.3.5a1'
-
+__version__ = '0.3.5'
 
 class api:
     """ This class handles the work to talk to MRR's api
@@ -138,6 +137,28 @@ class api:
         if page is not None:
             params.update({'page': str(page)})
         return self.api_call('rigs', params)
+
+    def rig_listall(self, min_hash=0, max_hash=0, min_cost=0, max_cost=0, rig_type='scrypt', showoff='no', order=None, orderdir=None):
+        rigs = self.rig_list(min_hash=min_hash, max_hash=max_hash, min_cost=min_cost, max_cost=max_cost, rig_type=rig_type, showoff=showoff, order=order, orderdir=orderdir)
+        total = int(rigs['data']['info']['total'])
+        page = 1
+        endnum = 0
+        success = rigs['success']
+        if not success:
+            return rigs
+        mrrrigs = {'data':{'records':[]}}
+
+        while ((endnum < total) and success):
+            prigs = self.rig_list(min_hash=min_hash, max_hash=max_hash, min_cost=min_cost, max_cost=max_cost, rig_type=rig_type, showoff=showoff, order=order, orderdir=orderdir, page=page)
+            for x in prigs['data']['records']:
+                mrrrigs['data']['records'].append(x.copy())
+            total = int(prigs['data']['info']['total'])
+            endnum = int(prigs['data']['info']['end_num'])
+            success = prigs['success']
+            mrrrigs['success'] = success
+            page += 1
+
+        return mrrrigs
 
     def rig_update(self, rig_id=None, rig_name=None, rig_status=None, hashrate=None, hash_type=None, price=None,
                    min_hours=None, max_hours=None):
