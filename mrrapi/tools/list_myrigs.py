@@ -15,50 +15,6 @@ def lineno():
     cf = currentframe()
     return cf.f_back.f_lineno
 
-
-#helper function to format floats
-def ff(f):
-    return format(f, '.8f')
-
-#helper function to format floats
-def ff12(f):
-    return format(f, '.12f')
-
-
-def getBTCValue():
-    # https://www.bitstamp.net/api/  BTC -> USD
-    bitstampurl = "https://www.bitstamp.net/api/ticker/"
-    try:
-        bsjson = urllib2.urlopen(bitstampurl).read()
-        dbstamp_params = json.loads(bsjson)
-        btc_usd = float(dbstamp_params['last'])
-    except:
-        print "Unable to retrieve BTC Value"
-        btc_usd = float(1.1)
-    return btc_usd
-
-def parsemyrigs(rigs,list_disabled=False):
-    """
-    :param rigs: pass the raw api return from mrrapi.myrigs()
-    :param list_disabled: Boolean to list the disabled rigs
-    :return: returns dict by algorithm
-    """
-    global mrrrigs
-    mrrrigs = {}
-    # I am not a python programmer, do you know a better way to do this?
-    # first loop to create algo keys
-    # second loop populates rigs in algo
-    for x in rigs['data']['records']:
-        mrrrigs.update({str(x['type']): {}})
-    for x in rigs['data']['records']:
-        if debug:
-            print x
-        if (list_disabled or str(x['status']) != 'disabled') and not (str(x['name']).__contains__('retired') or str(x['name']).__contains__('test')):
-            mrrrigs[str(x['type'])][int(x['id'])] = str(x['name'])
-    if debug:
-        print mrrrigs
-    return mrrrigs
-
 def calculateMaxIncomeAlgo(parsedrigs):
     global mhash
     rentalfee = float(0.03)
@@ -105,7 +61,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
                 rigstat = "disabled"
                 outcome -= dailyprice
 
-            print(layout.format(str(t['name']),str(t['type']),str(admhashrate),str(curhash),ff12(float(t['price'])) ,ff(dailyprice), rigstat,rentid))
+            print(layout.format(str(t['name']),str(t['type']),str(admhashrate),str(curhash),mrrapi.helpers.ff12(float(t['price'])) ,mrrapi.helpers.ff(dailyprice), rigstat,rentid))
             outcome += dailyprice
 
     return outcome
@@ -144,11 +100,11 @@ def main():
         if str(myrigs['message']) == 'not authenticated':
             print 'Make sure you fill in your key and secret that you get from https://www.miningrigrentals.com/account/apikey'
     else:
-        prigs = parsemyrigs(myrigs,True)
+        prigs = mrrapi.helpers.parsemyrigs(myrigs,True)
         #print prigs
         maxi = calculateMaxIncomeAlgo(prigs)
         bal = mapi.getbalance()
-        btcv = getBTCValue()
+        btcv = mrrapi.helpers.getBTCValue()
         print
         print "Max income/day : %s BTC. USD: %s" % (str(round(maxi,8) - 0.002),str(round(btcv*(maxi -0.002),2)))
         print "Current Balance: %s BTC. USD: %s" % (str(bal['data']['confirmed']),str(round(btcv*float(bal['data']['confirmed']),2)))
