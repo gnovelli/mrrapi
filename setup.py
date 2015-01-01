@@ -2,6 +2,7 @@ import os
 
 try:
     from setuptools import setup, find_packages # Always prefer setuptools over distutils
+    from version import *
 except ImportError:
     from distutils.core import setup
 
@@ -12,7 +13,7 @@ def read(fname):
 
 setup(
     name='mrrapi',
-    version='0.3.5a1',
+    version='get_git_version()',
     url='https://github.com/jcwoltz/mrrapi',
     description='MinigRigRentals.com python API integration',
     long_description=read('README.rst') + '\n\n' + read('CHANGES.txt'),
