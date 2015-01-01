@@ -6,57 +6,17 @@ import os
 import sys
 from optparse import OptionParser
 from inspect import currentframe
+#from mrrapi.helpers import getmrrconfig, getTerminalSize
+import mrrapi.helpers
 
 debug = False
-config = ConfigParser.ConfigParser()
-
-for loc in os.curdir, os.path.expanduser("~"), os.path.expanduser("~/.mrrapi"), os.path.expanduser("~/mrrapi"):
-    try:
-        with open(os.path.join(loc,"mrrapi.cfg")) as source:
-            config.readfp(source)
-            if debug:
-                print "DEBUG: Using %s for config file" % (str(source.name))
-    except IOError:
-        pass
-
-mkey = config.get('MRRAPIKeys','key')
-msecret = config.get('MRRAPIKeys','secret')
+___version___ = '0.0.1'
 
 def lineno():
     cf = currentframe()
     return cf.f_back.f_lineno
 
-def getTerminalSize():
-    import os
-    env = os.environ
-    def ioctl_GWINSZ(fd):
-        try:
-            import fcntl, termios, struct, os
-            cr = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ,
-        '1234'))
-        except:
-            return
-        return cr
-    cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-    if not cr:
-        try:
-            fd = os.open(os.ctermid(), os.O_RDONLY)
-            cr = ioctl_GWINSZ(fd)
-            os.close(fd)
-        except:
-            pass
-    if not cr:
-        cr = (env.get('LINES', 25), env.get('COLUMNS', 80))
 
-        ### Use get(key[, default]) instead of a try/catch
-        #try:
-        #    cr = (env['LINES'], env['COLUMNS'])
-        #except:
-        #    cr = (25, 80)
-    return int(cr[1]), int(cr[0])
-
-mapi = mrrapi.api(mkey,msecret)
-debug = False
 #helper function to format floats
 def ff(f):
     return format(f, '.8f')
@@ -165,7 +125,7 @@ def nicehash(mhashrate):
     return (str(mhashrate) + " " + mhunit)
 
 def main():
-    global debug
+    global debug, mapi
     parser = OptionParser()
     parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False, help="Show debug output")
     (options, args) = parser.parse_args()
@@ -173,7 +133,11 @@ def main():
     if options.debug:
         debug = True
         print options
-        print getTerminalSize()
+        print mrrapi.helpers.getTerminalSize()
+
+    (mkey, msecret) = mrrapi.helpers.getmrrconfig()
+    mapi = mrrapi.api(mkey,msecret)
+
 
     myrigs = mapi.myrigs()
     if myrigs['success'] is not True:

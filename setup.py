@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name='mrrapi',
-    version='0.3.4',
+    version='0.3.5a1',
     url='https://github.com/jcwoltz/mrrapi',
     description='MinigRigRentals.com python API integration',
     long_description=read('README.rst') + '\n\n' + read('CHANGES.txt'),
@@ -25,7 +25,7 @@ setup(
     author_email='jwoltz@gmail.com',
     keywords='mrr miningrigrentals api bitcoin',
     packages=find_packages(exclude=['contrib', 'example*', 'docs', 'tests*']),
-    install_requires=['requests'],
+    install_requires=['requests','pytz'],
     setup_requires = [ "setuptools_git >= 0.3", ],
     test_suite="mrrapi",
     entry_points={
