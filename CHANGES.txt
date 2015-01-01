@@ -1,3 +1,9 @@
+ v0.3.5
+==================
+add rig_listall api call. This function almost the same as rig_list except it handles the pagination
+add mrrapi.helpers to store commonly used functions by this package and other scripts
+in mrrapi.helpers look for a config file (mrrapi.cfg) in current dir, homedir(~), ~/.mrrapi, and ~/mrrapi
+
  v0.3.4
 ==================
 add console script list_myrigs
