@@ -16,7 +16,7 @@ from inspect import currentframe
 
 debug = False
 __author__ = 'jcwoltz'
-__version__ = '0.3.5a1'
+__version__ = '0.3.6'
 
 def getmrrconfig():
     mkey = None

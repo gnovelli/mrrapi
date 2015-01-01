@@ -16,7 +16,7 @@ import sys
 
 debug = False
 __author__ = 'jcwoltz'
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 
 class api:
     """ This class handles the work to talk to MRR's api

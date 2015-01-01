@@ -11,6 +11,7 @@ Intro
 2. Get API key and API secret on https://www.miningrigrentals.com/account/apikey account
 3. Run an example or create your own code
 4. (Required if you want to run included console scripts) put a file called mrrapi.cfg in you home directory or ~/.mrrapi/
+   Example file can be found at https://github.com/jcwoltz/mrrapi/blob/master/mrrapi.cfg
 
 How to use
 ===========

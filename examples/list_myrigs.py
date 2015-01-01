@@ -4,10 +4,6 @@ import mrrapi
 
 mkey = 'YourKey'
 msecret = 'YourSecret'
-try:
-    from rig_pricing.jckey import mkey,msecret
-except:
-    pass
 
 mapi = mrrapi.api(mkey,msecret)
 debug = False
