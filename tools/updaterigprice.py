@@ -1,54 +1,52 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import sys
 import json
 import urllib2
+import mrrapi
+import ConfigParser
+import os
+import sys
 from datetime import datetime, timedelta
 import requests
+from optparse import OptionParser
+from inspect import currentframe
 from pytz import timezone
 
-import mrrapi
-# #############################################################################
-##############################################################################
-# Change settings here
-# Verbose displays useful info. Turn off if you do not want it displayed
-verbose = True
-# Turn debug on to see all info
 debug = False
-
-# your key and secret
-mkey = 'YourKey'
-msecret = 'YourSecret'
-
-ppa = 1.25  # When rig is available, add 25% above max poolpicker payout
-ppr = 1.35  #    When rig is rented, add 35% above max poolpicker payout
-# Pools to ignore from poolpicker
-PoolPickerIgnore = ['AltMining.Farm', 'bobpool']
-##############################################################################
-##############################################################################
-##############################################################################
-try:
-    from jckey import mkey, msecret
-except:
-    pass
-
-mapi = mrrapi.api(mkey, msecret)
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
+config = ConfigParser.ConfigParser()
+PoolPickerIgnore = ['AltMining.Farm', 'MagicPool']
+ppa = 1.1  # When rig is available, add 25% above max poolpicker payout
+ppr = 1.1  #    When rig is rented, add 35% above max poolpicker payout
 mrrrigs = {}
 mrrprices = []
 
+for loc in os.curdir, os.path.expanduser("~"), os.path.expanduser("~/.mrrapi"), os.path.expanduser("~/mrrapi"):
+    try:
+        with open(os.path.join(loc,"mrrapi.cfg")) as source:
+            config.readfp(source)
+            if debug:
+                print "DEBUG: Using %s for config file" % (str(source.name))
+    except IOError:
+        pass
 
-def getBTCValue():
-    # https://www.bitstamp.net/api/  BTC -> USD
-    bitstampurl = "https://www.bitstamp.net/api/ticker/"
-    bsjson = urllib2.urlopen(bitstampurl).read()
-    dbstamp_params = json.loads(bsjson)
-    btc_usd = float(dbstamp_params['last'])
-    return btc_usd
+mkey = config.get('MRRAPIKeys','key')
+msecret = config.get('MRRAPIKeys','secret')
 
+def lineno():
+    cf = currentframe()
+    return cf.f_back.f_lineno
+
+mapi = mrrapi.api(mkey,msecret)
+reload(sys)
+sys.setdefaultencoding('utf-8')
+#helper function to format floats
+def ff(f):
+    return format(f, '.8f')
+
+#helper function to format floats
+def ff12(f):
+    return format(f, '.12f')
 
 def getPoolPickerAlgo(algo='ScryptN'):
     global algobtc, poolbtc
@@ -255,6 +253,15 @@ def printCalcs():
     #print "Likely weekly rentals (90%): " + str((0.9 * outcome - 0.0002) * btc_usd * 7)
     #print "CM Weekly: " + str(cmdaily * btc_usd * 7)
 
+def printMCalcs(setPrice):
+    btc_usd = getBTCValue()
+    updatemyRigsPrices(1, 1, setPrice, setPrice)
+
+    calculateMaxIncomeA()
+    mrrdaily = outcome - 0.0002
+
+    print "Total Hashing power: " + str(mhash)
+    print "MRR BTC: " + str(mrrdaily) + " USD: " + str(mrrdaily * btc_usd)
 
 def getriginfo(rigid):
     #this maps the mrr algo to the poolpicker algo
@@ -279,14 +286,160 @@ def getriginfo(rigid):
         return "Connection Error"
 
 
-if __name__ == '__main__':
-    arglen = len(sys.argv)
-    cmdargs = str(sys.argv)
-    #print ("The total numbers of args passed to the script: %d " % arglen)
-    #print ("Args list: %s " % cmdargs)
-    if arglen < 2:
-        print 'USAGE: %s rigid' % ('updaterigprice.py')
-    else:
-        print getriginfo(str(sys.argv[1]))
+
+
+
+
+
+
+def getBTCValue():
+    # https://www.bitstamp.net/api/  BTC -> USD
+    bitstampurl = "https://www.bitstamp.net/api/ticker/"
+    try:
+        bsjson = urllib2.urlopen(bitstampurl).read()
+        dbstamp_params = json.loads(bsjson)
+        btc_usd = float(dbstamp_params['last'])
+    except:
+        print "Unable to retrieve BTC Value"
+        btc_usd = float(1.1)
+    return btc_usd
+
+def parsemyrigs(rigs,list_disabled=False):
+    """
+    :param rigs: pass the raw api return from mrrapi.myrigs()
+    :param list_disabled: Boolean to list the disabled rigs
+    :return: returns dict by algorithm
+    """
+    global mrrrigs
+    mrrrigs = {}
+    # I am not a python programmer, do you know a better way to do this?
+    # first loop to create algo keys
+    # second loop populates rigs in algo
+    for x in rigs['data']['records']:
+        mrrrigs.update({str(x['type']): {}})
+    for x in rigs['data']['records']:
+        if debug:
+            print x
+        if (list_disabled or str(x['status']) != 'disabled') and not (str(x['name']).__contains__('retired') or str(x['name']).__contains__('test')):
+            mrrrigs[str(x['type'])][int(x['id'])] = str(x['name'])
+    if debug:
+        print mrrrigs
+    return mrrrigs
+
+def calculateMaxIncomeAlgo(parsedrigs):
+    global mhash
+    rentalfee = float(0.03)
+    outcome = float(0)
+    mhash = float(0)
+
+    namelen = 0
+
+    # Pre-process loop to find longest name
+    for algo in parsedrigs:
+        algorigs = parsedrigs[algo]
+        for x in algorigs:
+            nametmp = len(parsedrigs[algo][x])
+            if nametmp > namelen:
+                namelen = nametmp
+            #print x, algo, namelen
+
+    layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>13}{4:>17}{5:>14}{6:>14}{7:>10}"
+    print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? ","RentID"))
+
+    for algo in parsedrigs:
+        algorigs = parsedrigs[algo]
+        for x in algorigs:
+            rig = mapi.rig_detail(x)
+            t = rig['data']
+            if debug:
+                print t
+            rigstat = "available"
+            curhash = float(0.0)
+            rentid = ''
+            mhashrate = float(t['hashrate']['advertised'])/(1000000.0)
+            mhash += mhashrate
+            admhashrate = nicehash(float(t['hashrate']['advertised'])/(1000000.0))
+            dailyprice = mhashrate * float(t['price']) * (1.0 - rentalfee)
+            curhash = nicehash(round(float(t['hashrate']['30min'])/10**6,3))
+            if (str(t['status']) == 'rented'):
+                aih = float(t['available_in_hours'])
+                rigstat = "R "
+                if 0.1 < aih < 10.0:
+                    rigstat += " "
+                rigstat += str(aih) + " hrs"
+                rentid = str(t['rentalid'])
+            elif (str(t['status']) == 'unavailable'):
+                rigstat = "disabled"
+                outcome -= dailyprice
+
+            print(layout.format(str(t['name']),str(t['type']),str(admhashrate),str(curhash),ff12(float(t['price'])) ,ff(dailyprice), rigstat,rentid))
+            outcome += dailyprice
+
+    return outcome
+
+def nicehash(mhashrate):
+    mhunit = "MH"
+    if 1000 <= mhashrate < 1000000:
+        mhunit = "GH"
+        mhashrate = round(float(mhashrate/1000),3)
+    elif mhashrate >= 1000000:
+        mhunit = "TH"
+        mhashrate = round(float(mhashrate/1000000),3)
+    elif mhashrate >= 1000000000:
+        mhunit = "PH"
+        mhashrate = round(float(mhashrate/1000000000),3)
+    return (str(mhashrate) + " " + mhunit)
+
+def main():
+    global debug, verbose
+    verbose=False
+    parser = OptionParser()
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False, help="Show debug output")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="Show verbose output")
+    parser.add_option("-r", "--rigid", action="store", dest="rigid", help="RigID of rig to set price of", type="long")
+    parser.add_option("-p", "--price", action="store", dest="rigprice", help="Price to set of RigID", type="float")
+    parser.add_option("-c", "--calculated", action="store_true", dest="calculated", default=False, help="Automatically calculate price based off of payouts")
+    (options, args) = parser.parse_args()
+
+    if options.debug:
+        debug = True
+        print options
+    if options.verbose:
+        verbose = True
+        print options
+    if options.rigid is None or (options.rigprice is None and options.calculated is False):
+        if options.rigid is None:
+            print "ERROR: You must define a rig id to update."
+        if (options.rigprice is None and options.calculated is False):
+            print "ERROR: You must define a price or use the calculated option"
+        sys.exit(1)
+
+    print getriginfo(str(options.rigid))
+    if options.calculated:
         printCalcs()
-        #read through printCalcs for explanation and where else to read
+        sys.exit(0)
+    elif options.rigprice:
+        printMCalcs(options.rigprice)
+        sys.exit(0)
+
+    sys.exit(2)
+
+    #myrigs = mapi.myrigs()
+    #if myrigs['success'] is not True:
+    #    print "Error getting my rig listings"
+    #    if str(myrigs['message']) == 'not authenticated':
+    #        print 'Make sure you fill in your key and secret that you get from https://www.miningrigrentals.com/account/apikey'
+    #else:
+    #    prigs = parsemyrigs(myrigs,True)
+    #    #print prigs
+    #    maxi = calculateMaxIncomeAlgo(prigs)
+    #    bal = mapi.getbalance()
+    #    btcv = getBTCValue()
+    #    print
+    #    print "Max income/day : %s BTC. USD: %s" % (str(round(maxi,8) - 0.002),str(round(btcv*(maxi -0.002),2)))
+    #    print "Current Balance: %s BTC. USD: %s" % (str(bal['data']['confirmed']),str(round(btcv*float(bal['data']['confirmed']),2)))
+    #    print "Pending Balance: %s BTC. USD: %s" % (str(bal['data']['unconfirmed']),str(round(btcv*float(bal['data']['unconfirmed']),2)))
+
+
+if __name__ == '__main__':
+    main()

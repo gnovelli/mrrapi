@@ -29,7 +29,8 @@ setup(
     test_suite="mrrapi",
     entry_points={
         'console_scripts': [
-            'listmyrigs = tools.list_myrigs:main'
+            'listmyrigs = tools.list_myrigs:main',
+            'updaterigprice = tools.updaterigprice:main'
         ]
     }
 )

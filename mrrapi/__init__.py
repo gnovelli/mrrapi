@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """ This module will interface with the MiningRigRentals.com API in an attempt to give you easy access to their api.
-"""
-
 # Based off of https://github.com/matveyco/cex.io-api-python
 # Modified for MiningRigRentals.com purposes
 # Get a key from https://www.miningrigrentals.com/account/apikey
 # Licensed The MIT License
+"""
 
 import hmac
 import hashlib
@@ -16,7 +15,6 @@ import json
 import sys
 
 debug = False
-#from mrrapi import *
 __author__ = 'jcwoltz'
 __version__ = '0.3.4'
 
@@ -66,6 +64,7 @@ class api:
 
     def getbalance(self):
         """
+        Get the confirmed and unconfirmed balance form MRR
         :return: return confirmed and unconfirmed balances
         """
         return self.api_call('account', {'method': 'balance'})

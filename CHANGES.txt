@@ -1,6 +1,7 @@
  v0.3.4
 ==================
 add console script list_myrigs
+add console script updaterigprice
 add the page param to riglist api call
 moved internal things so help and docstrings show
 
