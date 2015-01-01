@@ -116,6 +116,7 @@ def calculateMaxIncomeAlgo(parsedrigs):
             if nametmp > namelen:
                 namelen = nametmp
             #print x, algo, namelen
+
     layout = "{0:>" + str(namelen) + "}{1:>10}{2:>10}{3:>13}{4:>17}{5:>14}{6:>14}{7:>10}"
     print(layout.format("  Device Name  ", " Type ", " Speed ","Cur hash 30m","Price  ", "Daily income", "Rented? ","RentID"))
 
@@ -158,6 +159,9 @@ def nicehash(mhashrate):
     elif mhashrate >= 1000000:
         mhunit = "TH"
         mhashrate = round(float(mhashrate/1000000),3)
+    elif mhashrate >= 1000000000:
+        mhunit = "PH"
+        mhashrate = round(float(mhashrate/1000000000),3)
     return (str(mhashrate) + " " + mhunit)
 
 def main():
