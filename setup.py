@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from version import *
 
@@ -13,7 +14,7 @@ def read(fname):
 
 setup(
     name='mrrapi',
-    version='get_git_version()',
+    version=get_git_version(),
     url='https://github.com/jcwoltz/mrrapi',
     description='MinigRigRentals.com python API client and integration',
     long_description=read('README.rst') + '\n\n' + read('CHANGES.txt'),

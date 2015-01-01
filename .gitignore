@@ -54,3 +54,5 @@ coverage.xml
 docs/_build/
 
 examples/rig_pricing/jckey.py
+RELEASE-VERSION
+
