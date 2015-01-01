@@ -26,6 +26,7 @@ setup(
     keywords='mrr miningrigrentals api bitcoin',
     packages=find_packages(exclude=['contrib', 'example*', 'docs', 'tests*']),
     install_requires=['requests'],
+    setup_requires = [ "setuptools_git >= 0.3", ],
     test_suite="mrrapi",
     entry_points={
         'console_scripts': [
