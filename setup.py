@@ -1,8 +1,8 @@
 import os
+from version import *
 
 try:
     from setuptools import setup, find_packages # Always prefer setuptools over distutils
-    from version import *
 except ImportError:
     from distutils.core import setup
 
@@ -15,7 +15,7 @@ setup(
     name='mrrapi',
     version='get_git_version()',
     url='https://github.com/jcwoltz/mrrapi',
-    description='MinigRigRentals.com python API integration',
+    description='MinigRigRentals.com python API client and integration',
     long_description=read('README.rst') + '\n\n' + read('CHANGES.txt'),
     classifiers=[
         "Development Status :: 4 - Beta",
