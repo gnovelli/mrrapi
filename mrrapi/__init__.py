@@ -86,6 +86,12 @@ class api:
         """
         return self.api_call('account', {'method': 'profiles'})
 
+    def list_pools(self):
+        """
+        :return: returns dict of favorite pools
+        """
+        return self.api_call('account', {'method': 'pools'})
+
     def rental_detail(self, rental_id):
         """
         :param rental_id: id number of rental
@@ -110,16 +116,16 @@ class api:
     def rig_list(self, min_hash=0, max_hash=0, min_cost=0, max_cost=0, rig_type='scrypt', showoff='no', order=None,
                  orderdir=None, page=None):
         """
-        :param min_hash:
-        :param max_hash:
-        :param min_cost:
-        :param max_cost:
-        :param rig_type:
-        :param showoff:
-        :param order: order is one of 'price','hashrate','minhrs','maxhrs','rating','name'
-        :param orderdir: orderdir is one of 'asc','desc'
-        :return:
-        page for more pages
+        :param min_hash: minimum hashrate in MH
+        :param max_hash: maximum hashrate in MH
+        :param min_cost: minimum price per MH
+        :param max_cost: maximum price per MH
+        :param rig_type: scrypt|nscrypt|x11|x13|x15|nist5|groestl|mgroestl|fresh|cryptonotes|sha256|sha3
+        :param showoff: yes/no -- show offline rigs
+        :param order: oprice,hashrate,minhrs,maxhrs,rating,name
+        :param orderdir:  asc/desc
+        :param page; page numeber for more listings starting at 1
+        :return: json dict
         """
         params = {'method': 'list', 'type': str(rig_type), 'showoff': str(showoff)}
         if (float(min_hash) > 0):
