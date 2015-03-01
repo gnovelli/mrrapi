@@ -82,10 +82,11 @@ def ff12(f):
 def getBTCValue():
     # https://www.bitstamp.net/api/  BTC -> USD
     bitstampurl = "https://www.bitstamp.net/api/ticker/"
+    cburl = "https://api.coinbase.com/v1/currencies/exchange_rates"
     try:
-        bsjson = urllib2.urlopen(bitstampurl).read()
-        dbstamp_params = json.loads(bsjson)
-        btc_usd = float(dbstamp_params['last'])
+        cbjson = urllib2.urlopen(cburl).read()
+        dcb_params = json.loads(cbjson)
+        btc_usd = float(dcb_params['btc_to_usd'])
     except:
         print "Unable to retrieve BTC Value"
         btc_usd = float(1.1)
@@ -111,3 +112,16 @@ def parsemyrigs(rigs,list_disabled=False):
     if debug:
         print mrrrigs
     return mrrrigs
+
+def nicehash(mhashrate):
+    mhunit = "MH"
+    if 1000 <= mhashrate < 1000000:
+        mhunit = "GH"
+        mhashrate = round(float(mhashrate/1000),3)
+    elif mhashrate >= 1000000:
+        mhunit = "TH"
+        mhashrate = round(float(mhashrate/1000000),3)
+    elif mhashrate >= 1000000000:
+        mhunit = "PH"
+        mhashrate = round(float(mhashrate/1000000000),3)
+    return (str(mhashrate) + " " + mhunit)
