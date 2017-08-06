@@ -49,8 +49,12 @@ class api:
         params = urllib.urlencode(param)
         sign = self.__signature(param)
         req = urllib2.Request(url, params, {
-            'User-agent': 'Mozilla/4.0 (compatible; MRR API Python client; ' + str(sys.platform) + '; ' + str(
-                sys.version) + ')', 'x-api-key': self.__api_key, 'x-api-sign': sign})
+            'User-agent': 'Mozilla/4.0 (compatible; MRR API Python client; ' +
+                str(sys.platform) + '; ' + str(sys.version).replace('\n', '') +
+                ')',
+            'x-api-key': self.__api_key,
+            'x-api-sign': sign
+        })
         page = urllib2.urlopen(req).read()
         return page
 
